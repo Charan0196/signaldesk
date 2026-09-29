@@ -14,7 +14,7 @@ signaldesk serve                        # → http://127.0.0.1:8420
 ### 🎥 Demo
 <img width="1440" height="900" alt="Screenshot 2026-09-29 at 9 35 17 PM" src="https://github.com/user-attachments/assets/1e6d1cbe-64c5-4bab-815a-07c35a5fd264" />
 ## Demo video:
-[https://github.com/user-attachments/assets/YOUR-VIDEO-ASSET-ID](https://github.com/Charan0196/signaldesk/blob/main/copy_88B8AE44-3080-4C9F-A331-42152F86F218.MOV)
+(https://github.com/Charan0196/signaldesk/blob/main/copy_88B8AE44-3080-4C9F-A331-42152F86F218.MOV)
 
 
 ## The problem
