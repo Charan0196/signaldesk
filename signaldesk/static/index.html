@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SignalDesk — Churn Early Warning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css?v=6" />
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 17l5-6 4 3 5-7 4 4"/>
+        <circle cx="8" cy="11" r="1.6" fill="currentColor"/>
+        <circle cx="12" cy="14" r="1.6" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>SignalDesk</h1>
+      <p>Churn early-warning powered by Hindsight memory</p>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="overview">Overview</button>
+    <button class="tab" data-view="account">Account</button>
+    <button class="tab" data-view="ingest">Ingest</button>
+    <button class="tab" data-view="memory">Memory</button>
+    <button class="tab" data-view="lab">Memory Lab</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="pill" id="bank-pill" title="Hindsight memory bank">
+      <span class="dot"></span><span id="bank-name">—</span>
+    </div>
+    <button class="btn-ghost" id="theme-toggle" title="Toggle theme">◐</button>
+  </div>
+</header>
+
+<div class="org-strip">
+  <span class="chip"><b id="stat-memories">—</b> memory units</span>
+  <span class="chip"><b id="stat-accounts">—</b> accounts</span>
+  <span class="chip"><b id="stat-models">—</b> mental models</span>
+  <span class="chip"><b id="stat-directives">—</b> guardrail directives</span>
+  <span class="ops-note">ops: <code id="ops-list">retain · reflect · mental models · directives</code> <em>(no recall)</em></span>
+</div>
+
+<main>
+
+  <!-- ══════════════════ OVERVIEW ══════════════════ -->
+  <section class="view active" id="view-overview">
+    <div class="view-head">
+      <div>
+        <h2>Portfolio risk board</h2>
+        <p class="muted">Every verdict is reasoned over the full account history — including how comparable accounts actually turned out.</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn" id="btn-board">Triage portfolio</button>
+        <button class="btn-primary" id="btn-seed">Load demo book</button>
+      </div>
+    </div>
+    <div id="board-area"></div>
+  </section>
+
+  <!-- ══════════════════ ACCOUNT ══════════════════ -->
+  <section class="view" id="view-account">
+    <div class="view-head">
+      <div>
+        <h2>Account intelligence</h2>
+        <p class="muted">Diagnose an account and prescribe a save play grounded in precedent.</p>
+      </div>
+      <div class="head-actions">
+        <select id="account-select" class="select"></select>
+        <button class="btn-primary" id="btn-assess">Analyze</button>
+      </div>
+    </div>
+
+    <div class="account-tabs" id="account-tabs">
+      <button class="atab active" data-pane="verdict">Verdict &amp; Plan</button>
+      <button class="atab" data-pane="brief">Account Brief</button>
+      <button class="atab" data-pane="memories">Raw Memory</button>
+    </div>
+
+    <div id="pane-verdict" class="pane active"></div>
+    <div id="pane-brief" class="pane"></div>
+    <div id="pane-memories" class="pane"></div>
+  </section>
+
+  <!-- ══════════════════ INGEST ══════════════════ -->
+  <section class="view" id="view-ingest">
+    <div class="view-head">
+      <div>
+        <h2>Ingest a signal</h2>
+        <p class="muted">Paste a call transcript, email or ticket. Hindsight extracts the facts; nothing is hand-parsed.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <label class="field">
+          <span>Customer account</span>
+          <input id="ing-account" class="input" placeholder="Meridian Freight" list="account-list" />
+          <datalist id="account-list"></datalist>
+        </label>
+        <div class="row-2">
+          <label class="field">
+            <span>Channel</span>
+            <select id="ing-channel" class="input">
+              <option>call</option><option>email</option><option>ticket</option>
+              <option>qbr</option><option>slack</option><option>note</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Date (optional)</span>
+            <input id="ing-date" class="input" type="date" />
+          </label>
+        </div>
+        <label class="field">
+          <span>Signal text</span>
+          <textarea id="ing-text" class="input textarea" rows="10" placeholder="[2026-09-28] Call — Devon's tone shifted..."></textarea>
+        </label>
+        <div class="row-actions">
+          <button class="btn-primary" id="btn-ingest">Retain to memory</button>
+          <button class="btn" id="btn-sample">Load sample</button>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3 class="card-title">What happens next</h3>
+        <ol class="steps">
+          <li><b>retain</b> — the raw text is extracted into facts, tagged <code>acct:</code> and <code>chan:</code>.</li>
+          <li><b>consolidate</b> — facts merge into observations that update rather than duplicate.</li>
+          <li><b>mental model</b> — the account brief re-synthesizes with the new signal.</li>
+          <li><b>reflect</b> — the next verdict cites this signal alongside your history.</li>
+        </ol>
+        <div id="ingest-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ MEMORY ══════════════════ -->
+  <section class="view" id="view-memory">
+    <div class="view-head">
+      <div>
+        <h2>Memory bank</h2>
+        <p class="muted">What the agent actually knows, and the rules every reflection must obey.</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn" id="btn-refresh-memory">Refresh</button>
+        <button class="btn-danger" id="btn-reset">Wipe bank</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3 class="card-title">Accounts in memory</h3>
+        <div id="acct-list" class="acct-list"></div>
+      </div>
+      <div class="card pad">
+        <h3 class="card-title">Guardrail directives</h3>
+        <p class="muted small">Installed on the bank. These bind every <code>reflect</code> call.</p>
+        <div id="dir-list" class="dir-list"></div>
+      </div>
+    </div>
+    <div class="card pad">
+      <h3 class="card-title">Mental models</h3>
+      <div id="mm-list" class="mm-list"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ MEMORY LAB ══════════════════ -->
+  <section class="view" id="view-lab">
+    <div class="view-head">
+      <div>
+        <h2>Memory Lab — is memory actually doing the work?</h2>
+        <p class="muted">An ablation. Same model, same prompts, same account — one run with full history, one with only that account's own signals.</p>
+      </div>
+      <div class="head-actions">
+        <select id="lab-select" class="select"></select>
+        <button class="btn-primary" id="btn-compare">Run ablation</button>
+      </div>
+    </div>
+    <div id="lab-result"></div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+<div id="loader" class="loader"><div class="spinner"></div><span id="loader-text">Thinking…</span></div>
+
+<script src="/static/app.js?v=6"></script>
+</body>
+</html>
