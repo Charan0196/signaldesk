@@ -195,4 +195,4 @@ behavior is verified by `signaldesk demo`.
 
 ---
 
-*Hackathon submission — Vectorize Hindsight Memory Hack.*
+*Hackathon submission.*
