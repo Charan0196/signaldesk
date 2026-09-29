@@ -78,6 +78,34 @@ ticket dumps — the extraction is Hindsight's job, not a regex.
 
 ---
 
+## Deploying
+
+The app is **stateless** — all customer memory lives in the Hindsight bank, so any number of
+instances can serve the same data. It reads `PORT` and `HOST` from the environment, so the same
+image runs on a laptop and on a platform that injects them.
+
+```bash
+docker build -t signaldesk .
+docker run -p 8420:8420 -e HINDSIGHT_API_KEY=hsk_... signaldesk
+```
+
+or with compose:
+
+```bash
+cp .env.example .env      # add your key
+docker compose up --build
+```
+
+**Render / Railway / Fly / Cloud Run** — `render.yaml` is included and works as-is; it deploys
+straight from the repo. Set `HINDSIGHT_API_KEY` in the platform's dashboard (never in a committed
+file) and optionally `OPENROUTER_API_KEY` to enable the fast ingest classifier.
+
+> **On a cold start**, the container serves the UI immediately and sets the bank up in the
+> background. If Hindsight is unreachable the UI loads and shows the error rather than refusing
+> the connection — but `/api/state` will report it.
+
+---
+
 ## How memory is used (the part judges ask about)
 
 Four memory operations. **Not `recall`** — retrieval is `reflect`'s job, so the agent *reasons

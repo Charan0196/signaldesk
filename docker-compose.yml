@@ -1,0 +1,26 @@
+services:
+  signaldesk:
+    build: .
+    image: signaldesk:latest
+    ports:
+      - "8420:8420"
+    environment:
+      # Supply your own key — never commit it.
+      HINDSIGHT_API_KEY: ${HINDSIGHT_API_KEY:?set HINDSIGHT_API_KEY in your shell or .env}
+      HINDSIGHT_BASE_URL: ${HINDSIGHT_BASE_URL:-https://api.hindsight.vectorize.io}
+      HINDSIGHT_BANK_ID: ${HINDSIGHT_BANK_ID:-signaldesk-churn}
+      # Optional: enables the fast ingest classifier via OpenRouter free models.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      PORT: "8420"
+      HOST: "0.0.0.0"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8420/api/state', timeout=5).status==200 else 1)"
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 20s

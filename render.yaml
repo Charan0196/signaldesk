@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: signaldesk
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/state
+    envVars:
+      - key: HINDSIGHT_API_KEY
+        sync: false        # set in the Render dashboard
+      - key: HINDSIGHT_BASE_URL
+        value: https://api.hindsight.vectorize.io
+      - key: HINDSIGHT_BANK_ID
+        value: signaldesk-churn
+      - key: OPENROUTER_API_KEY
+        sync: false        # optional: enables the fast ingest classifier
+      - key: PORT
+        value: "8420"
+      - key: HOST
+        value: "0.0.0.0"

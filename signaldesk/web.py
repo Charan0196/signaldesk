@@ -22,6 +22,7 @@ import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -38,9 +39,6 @@ log = logging.getLogger("signaldesk.web")
 logging.basicConfig(level=logging.WARNING)
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-
-app = FastAPI(title="SignalDesk", version="0.1.0", docs_url="/api/docs")
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # One shared agent keeps memory warm and avoids re-handshaking per request.
 # Reflect is slow (10-60s), so assessments are serialized per-process.
@@ -96,19 +94,26 @@ def get_agent() -> SignalDeskAgent:
     return _agent
 
 
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Set the bank up once at boot and release the client on shutdown.
+
+    Uses the modern lifespan API — ``@app.on_event`` is deprecated in FastAPI.
+    Setup failures are logged rather than raised so the UI can load and show the
+    error instead of a blank connection refusal.
+    """
     try:
         call_blocking(lambda: get_agent().setup())
-    except Exception:  # noqa: BLE001 - the UI should load and show the error instead
+    except Exception:  # noqa: BLE001
         log.exception("startup setup failed")
-
-
-@app.on_event("shutdown")
-def _shutdown() -> None:
+    yield
     if _agent is not None:
         _agent.close()
     _io.shutdown(wait=False)
+
+
+app = FastAPI(title="SignalDesk", version="0.1.0", docs_url="/api/docs", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # --- models ---------------------------------------------------------------
@@ -348,4 +353,11 @@ def _unhandled(request, exc):  # noqa: ANN001, ANN201
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("signaldesk.web:app", host="127.0.0.1", port=8000, reload=False)
+    # PORT/HOST come from the environment so the same image runs on a laptop and
+    # on a platform that injects them (Render, Railway, Fly, Cloud Run).
+    uvicorn.run(
+        "signaldesk.web:app",
+        host=os.environ.get("HOST", "127.0.0.1"),
+        port=int(os.environ.get("PORT", "8420")),
+        log_level=os.environ.get("LOG_LEVEL", "warning"),
+    )

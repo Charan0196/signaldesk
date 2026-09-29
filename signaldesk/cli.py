@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -208,10 +209,13 @@ def serve(
     try:
         import uvicorn
     except ImportError:
-        _die("uvicorn is not installed — run: uv pip install 'uvicorn[standard]' fastapi")
+        _die("uvicorn is not installed — run: pip install 'uvicorn[standard]' fastapi")
     from .web import STATIC_DIR  # noqa: F401 - validates the asset dir exists
 
     console.print(f"[green]▶[/green] SignalDesk dashboard on [bold]http://{host}:{port}[/bold]")
+    # Run the app object directly so PORT/HOST from the environment still win
+    # on platforms that inject them.
+    os.environ.setdefault("PORT", str(port))
     uvicorn.run("signaldesk.web:app", host=host, port=port, log_level="warning")
 
 

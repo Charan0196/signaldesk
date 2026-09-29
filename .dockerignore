@@ -1,0 +1,19 @@
+# The build context is the repo root, and the Dockerfile copies in ./signaldesk.
+# Only exclude *build artifacts* here — excluding the package would break COPY.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets must never enter the image.
+.env
+.env.*
+!.env.example
+
+.git/
+.gitignore
+.DS_Store
